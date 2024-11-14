@@ -8,3 +8,13 @@ an extra table is not created rather an extra column is created in owning side
 which acts as foriegn key.
 * in a one to many or one to one relation if joinkey is not defined then it wil create
 a join table.
+
+Understanding of exception resolver
+-----------------------------------
+* When dispatcher servelet generates an error or gets error returned from controller it is passed onto a composite ie <b>HandlerExceptionResolverComposite</b>
+which inturn delegates this error to 3 resolver to resolve it.
+* ExceptionHandlerExceptionResolved - handles error annotated in @ExceptionHandler(at each controller) or @ControllerAdvice(one at global level for all controllers)
+* ExceptionStatusExceptionResolver - handles error annotated with @ResponseStatus.
+* DefaultHandlerExcptionResolver - handles all other exception defined in this class for example resource not found for bad url.
+* Once a resolver handles the error it is not passed onto another resolver.
+* If none of the resolvers resolves the error then a basic resopnse entity is created by DefaultErrorAttributes
