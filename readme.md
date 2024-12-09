@@ -63,3 +63,66 @@ Bean and its lifecycle
 * Constructor injection is the most preferred as it supposrts immutablelity, latest spring allows constructor injection without using @Autowired if there is only one constructor. If there is more than one constructor then @Autowired is mandatory and spring only initialiese/uses that constructor.
 * Use @Primary or @Qualifier if you have 2 classes implementing an interface.
 * Use refactoring/@Lazy to resolve a circular dependency.
+
+Bean Scopes
+------------
+* singleton beans are default or annotated with @Scope("singleton"), if two controllers refer to this object both the classes will have same instnace of the bean, this can be verified by printing hashcode in postConstruct. singleton beans are eagerly constructed.
+* prototype beans are lazily initialised, each controller will have a differnt instance of this bean.
+* request beans are tied to every request and lazily initialised.
+* session beans are tied to a session and gets removed when session ends.
+
+maven lifecycle
+---------------
+* validate->compile->test->package->verify->install->deploy (phases)
+* we can add multiple goals to each phase for example in validate we can add pmd goal which will check for dead code/unreachable code.
+
+JWT
+----
+* jwt is a token returned by authorisation server, which will further be used to interact with resource server. jwt tokens are stateless and hence used in microserves as the the token itself contains all relevant information.
+* session ids are statewful and details created an entry in db(ttl,date,id,roles) and returned only the id which was further used to access resource server. on every request the server has to hit db and verify validtiy of the session.
+* RSA - asymmetric and HMAC - symmetric key algo
+* jwt = header(type=JWT|cryptography algo).payload(claims=issuer|subject|audience|expirtytime|id).signature(base64 encoded(header|payload|signature))
+* jwt early invalidation is hard so the best option is to create a blacklisted table and add early invalidated tokens here.
+* jwt/jsw is only encoded(base 64), jwe is encrypted and hence more secure.
+
+OAUTH-2.0
+---------
+* Its a authentication framework and enables thrid party to get access user data.
+* Actors involved Resource owner(user logging in), CLient(website requesting login), Authorisation Server (Server validating credentials), Resource hosting server(holds user data like name,age etc)
+* First the client should be registered with authorisation server which will give client a id.
+* To get auth code, client makes a GET call saying {response_type:code,client_id:clientId,callBack_uri:callbackuri,scope:scopes,state:random string (used to prevent csrf attack)}
+* to get token, client makes a POST call with {grant_type=authorisation_code, code=auht code recieved above, redirect_uri:xyz, client_code:clientCode, client_secret:client secret recieved during registrations.}
+* to get new token after expiry we make the same post call above but change grant_type=refresh_token, token: refresh token got in above calls response.
+
+Spring jpa
+-----------
+* Add spring-starter-jdbc and corresponding db(h2,mysql) dependency to pom.
+* Autowire JdbcTemplate and start using it, @Repository converts SQLExpcetion to exception with meaningful message, dont have to write PreparedStatement or handle connection.
+* (spring.datasource.username) datasource object helps with connection pooling and database connections. hikari is default datasource and provides hikari cp for connection pooling.
+* In jdbc we use sql to interact with db but with orm(springboot starter jpa default is hibernate) we use java objects to interact with db
+* If we save a record and try to read it in same trnasaction it will read it from cache and not db.
+* 1 persistance unit = 1 entity manager factory -> entitymamanger (session)
+* When we are using multiple dbs(h2/mysql) in a spring application we need to define which all entities go to h2 and which go to mysql in configuration. also transaction type has to be JTA(one trnasaction management for 2 dbs) and not resource_local(one transaction per db).
+* resource_local = JpaTransactionManager.java(transaction limited to one db), jta = JtaTransactionManager.java (single trnasaction for multiple db)
+* jparepository provides @transaction by default/pagination or sort implementations/insertAll,deleteAll../dont have to worry about managing entitymamanger... these things are not provided by @PersistanceContext EntityManager
+* entity life cycle - transient(newly created like new User())/persistent(entityMamanger.persist()/get()/merge())/detached(entityMamanger.close())/removed (entityMamanger.remove())
+* First level cache happens in persistence context, for example suppose the user gives an insert/delete/insert/get in one transaction, the first insert/delete happens in persistance context and doesnt touch the db. final save will push persistance context to db and read will fetch from persistance context and dont touch the db.
+* EntityManager(PC) is limited to one transaction.
+
+Redis
+-----
+* cache aside - used in read heavy application where the application tries to read from cache it its a miss then it fetches it from db.
+* write through - writes to db and cache as one atomic transaction, any failure it'll be removed from both.
+* write behind - write to cache and return response. cache makes an async call to save it to db.
+
+Threads
+--------
+* ThreadLocal holds the data local to a thread. If we are using threadpool then the data set on a thread will be preserved if this thread is being used by another task itll see this previous data. so in thread pool it is better to call remove() after use.
+* Traditional thread/Platform thread was a wrapper around OS thread. This had 2 disadvantages 1) Thread creation was slow (resolved by connection pooling) and second one is wasting a thread resource for IO blocking like network/db call.
+* Virtual threads are lightweight as they are created on heap and secondly they are associated with a OS thread only in running state, during waiting waiting state jvm releases the os thread.
+* Thread.ofVirtual().start(runnableTask) or Executors.newVirtualThreadPerTaskExecutor()
+* Executors.newFixedThreadPool() - fixed size and threads are alive even if they are not used.
+* Executors.newCachedThreadPool() - creates a thread as per need.
+* Executors.newSingleThreadExecutor() - for serial executuion.
+* Executors.newWorkStealingPool()(internally created a fork join pool) or we can call ForkJoinPool.commonPool()
+* 
