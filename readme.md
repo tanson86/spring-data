@@ -108,6 +108,14 @@ Spring jpa
 * entity life cycle - transient(newly created like new User())/persistent(entityMamanger.persist()/get()/merge())/detached(entityMamanger.close())/removed (entityMamanger.remove())
 * First level cache happens in persistence context, for example suppose the user gives an insert/delete/insert/get in one transaction, the first insert/delete happens in persistance context and doesnt touch the db. final save will push persistance context to db and read will fetch from persistance context and dont touch the db.
 * EntityManager(PC) is limited to one transaction.
+* second level cache ie ehcache acts like redis just infront of db. this cache is populated based on read/write policy. to enable 2nd level cache artifacts have to be configured in pom and appropriate properties in application.properties. entity calsses must be annotated with @Cache and also region(cache name) must be mentioned so different caching properties can be applied to different regions.
+* Composite unique key/index can be defined at Entity level only. Single column unique/index can de defined at field level too.
+* @Id can be defined only on single field. If you want to have composite ID then you have to use Embeddable/Embedded or IdClass/Id
+* @GenerationType is used to populate id or else we will have to manually genrate an id and send it along with object.
+* Use @joincolumns to use a composite foreign key.
+* one to one/many to one default loading is eager, one to many/many to many default loading is lazy
+* Owner side holds the foreign key column, this makes material changes in db. Inverse side holds a reference to the owner for back tracking but doesnt have any material changes in db.
+* While fetching inverse side can lead to infinite recursion of child->parent->child->etc to prevent that we can use @JsonManagedReference (owning side) or @JsonBackReference (inverse side) or use @JsonIdentityInfo on both sides.
 
 Redis
 -----
@@ -125,4 +133,31 @@ Threads
 * Executors.newCachedThreadPool() - creates a thread as per need.
 * Executors.newSingleThreadExecutor() - for serial executuion.
 * Executors.newWorkStealingPool()(internally created a fork join pool) or we can call ForkJoinPool.commonPool()
+* In workstealingpool/forkjoinpool the following happens
+    - when tasks(1,2) are submitted for execution the get put in submission queue.
+    - Assume there are 2 threads(T1,T2) and each thread picks up a task. Suppose task 1 is a regular task it is worked on till completion.
+    - If task 2 extends RecursiveTask(returns a value) or RecursoveAction(no return value) and thread 2 picks this task it divided the task and starts working on 1 half of the task and puts the other half in a workstealing queue. When T1 is done with Task1 it checks its worksstealing queue and then submission queue and then steals work from others threads workstealingqueue.
+    - Heve every thread checks for task in the following priority 1. Check its own work stealing queue 2. Check task submission queue 3. Steal work from other threads work stealing queue.
+* submit(runnable - no return value) or submit(callable - return a value)
+* CompletableFuture.supplyAsync(Supplier, ExecitorService) - executorService is optional and use fork join pool by default.
+* CompletableFuture.thenApply() - works on result of previous stage but on same thread.
+* CompletableFuture.thenApplyAsync() - works on result of previous stage but on a diff thread.
+* CompletableFuture.thenCompose()/thenComposeAsync() - start another async operation after result of previous stage.
+* CompletableFuture.thenAccept()/thenAcceptAsync() - End stage, takes previous stage result and doesnt return a value (Void)
+* CompletableFuture.thenCombine()/thenCombineAsync() - Used to combine 2 async tasks.
+
+Locks
+-----
+* syncronised locks are monitor locks, lock acquired on the object. Threads running on diff objects will run independently threads running on same object will be blocked. works well on singleton object
+* Locks and semaphonres dont create lock on objects.
+* Same lock object is passed to multiple objects so each object will have to wiat for this lock to be released.
+* shared lock (readonly) can be acquired by multiple threads but no exclusive(write) locks allowed
+* when a thread acquires exclusive lock no other threads can get a shared lock.
+* stampede lock (optimistic locking) works like something @Version in hibernate. Here an actual lock is not acquired rather we check if the stamp has changed be someother thread using validate(stamp) and take actions accordingly.
+* semaphore lock takes a count in constructor which tells how many thread can acquire a lock at the same time.
+* while using monitor lock(synchronised) we use wait/notufy for inter thread communication where as when we use locks we use await/signal
+* The above are all locked based mechanism
+* The below are lock free mechanisms compare and swap(CAS) operation - AtomicInteger/AtomicReference
+* CAS always check expected value and value in memory should match, if it doesnt match then it changes expected to val in memory. expected value acts like a version.
+* volatile keyword tells dont read/write from local cache but directly from memory. doesnt provide thread safety but data visiblity is guranteed.
 * 
