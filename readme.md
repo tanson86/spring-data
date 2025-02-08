@@ -8,6 +8,13 @@ an extra table is not created rather an extra column is created in owning side
 which acts as foriegn key.
 * in a one to many or one to one relation if joinkey is not defined then it wil create
 a join table.
+* orpahn removal is false by default which means the foriegn key would be set tot null, when this is true it removes this record from db.
+* cascade delete will happen when parent is deleted, orphan removal is when child is removed from list and this makes parent id as null in db.
+* Derive query - generate query from method name in jparepository.
+* PartTree.Java and Part.java shows the different keywords one can use with derived query.
+* FetchType = EAGER will work only in OneToOne relations, in OneToMany it still has the N+! isssue, We can use JOIN FETCH/BatchSize/EntityGraph to do an eager fetch.
+* @Query alsways expects a Select so to pass other queries like DELETE/INSERT we should use another annonttion @Modifying. We can pass 2 params like flushAutomatically/clearAutomtically.
+* 
 
 Understanding of exception resolver
 -----------------------------------
@@ -49,7 +56,7 @@ Understanding transactions
     sop(TransactionSyncronizationManager.getCurrentTransactionName())
 * Isolation tells how the changes done by one transaction are visible to others, default isolation level will depend on the underlying db selected, mostly relational dbs use read_committed.
     Read uncommited - fetchs uncommited data (no read/write lock)
-    Read committed - fetches only commited data (read lock acquired and released immediately or write lock acquired and held till end of transaction)
+    Read committed - fetches only commited data (read lock acquired and released immediately after read or write lock acquired and held till end of transaction)
     Non repeatable read - running fetch multiple times yields diff result of same record as someother transaction might have commited the data. (read/write lock held till end of transaction)
     phantom read - running fetch multiple times will yield different number of records(locks same as non repeatable read but applies a range lock) age>1 and age<5 (here range would be 2,3,4 and all these ids would be locked)
 
@@ -126,7 +133,7 @@ Redis
 Threads
 --------
 * ThreadLocal holds the data local to a thread. If we are using threadpool then the data set on a thread will be preserved if this thread is being used by another task itll see this previous data. so in thread pool it is better to call remove() after use.
-* Traditional thread/Platform thread was a wrapper around OS thread. This had 2 disadvantages 1) Thread creation was slow (resolved by connection pooling) and second one is wasting a thread resource for IO blocking like network/db call.
+* Traditional thread/Platform thread was a wrapper around OS thread. This had 2 disadvantages 1) Thread creation was slow (resolved by connection pooling) and 2) wasting a thread resource for IO blocking like network/db call.
 * Virtual threads are lightweight as they are created on heap and secondly they are associated with a OS thread only in running state, during waiting waiting state jvm releases the os thread.
 * Thread.ofVirtual().start(runnableTask) or Executors.newVirtualThreadPerTaskExecutor()
 * Executors.newFixedThreadPool() - fixed size and threads are alive even if they are not used.
@@ -160,4 +167,21 @@ Locks
 * The below are lock free mechanisms compare and swap(CAS) operation - AtomicInteger/AtomicReference
 * CAS always check expected value and value in memory should match, if it doesnt match then it changes expected to val in memory. expected value acts like a version.
 * volatile keyword tells dont read/write from local cache but directly from memory. doesnt provide thread safety but data visiblity is guranteed.
-* 
+
+Transaction handling in distributed systems
+-------------------------------------------
+* Transaction - set of tasks done to keep db in a good state.
+* ACID
+  * Atomicity - Either the entire tx is successful or failure. no partial success or failure
+  * consistency - db in consistent state before and after tx
+  * isolation - one transaction shouldnt interfere with another transaction, appears to eb serial.
+  * durablity - after tx is successful even a db failure shouldnt corrupt the data
+* Transaction management is easy in a single db but distributed transaction across multiple dbs are hard to manage.
+* 2 Phase commit(2PC) here a TransactionCoordinator locks the record and send the query to all partcipant(order and inventory db) and then follows up with Prepare, if both parties return a yes then it sends a commit message to both parties and on getting ok response transaction manager closes. if response for prepare is not ok from any one party then abort is issued to both the parties.
+* log files are maintained to handle failures, so when coordinator comes back up the partcipant can ask the status.
+* Failure at approve stage is easy to handle but failure at commit stage is hard to handle and hence we have 3 phase commit.
+* 3PC - prepare, precommit,commit. here the commit decision is transmitted to the partcipants in 2pc the partcipants are not aware of this decision. in 2pc the coordinator only asks can we commit and they give their response.
+* commit phase is blocking and pre commit is non blocking
+* partcipant cannot commit or rollback rather they pass their state to the coordinator who takes the final decision based on all responses if all can be commited or not.
+* partcipants can communicate with each other in 2pc/3pc.
+* saga pattern is more deep(more services involved as part of transaction) and locking will give a bad user experience, saga is asynchronous and 2pc/3pc are synchronous.
