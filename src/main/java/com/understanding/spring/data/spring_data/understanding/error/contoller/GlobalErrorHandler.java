@@ -5,11 +5,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.net.http.HttpResponse;
 import java.security.InvalidParameterException;
 
-@ControllerAdvice
+@RestControllerAdvice
 public class GlobalErrorHandler {
     @ExceptionHandler(InvalidParameterException.class)
     public ResponseEntity handleError(InvalidParameterException ive){

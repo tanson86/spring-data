@@ -19,7 +19,7 @@ public class MyThreadLocal {
         t1.join();
         t2.join();
 
-        System.out.println(UserContextRegular.concMap.size());
+        System.out.println("concMap "+UserContextRegular.concMap.size());
 
         UserContextThreadLocal uctl1 = new UserContextThreadLocal("ATL");
         UserContextThreadLocal uctl2 = new UserContextThreadLocal("BTL");
