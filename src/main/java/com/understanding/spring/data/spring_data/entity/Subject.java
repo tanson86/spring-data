@@ -1,4 +1,4 @@
-package com.understanding.spring.data.spring_data.model;
+package com.understanding.spring.data.spring_data.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

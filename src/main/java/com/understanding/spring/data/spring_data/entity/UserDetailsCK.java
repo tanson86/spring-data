@@ -1,6 +1,4 @@
-package com.understanding.spring.data.spring_data.model;
-
-import jakarta.persistence.Embeddable;
+package com.understanding.spring.data.spring_data.entity;
 
 import java.io.Serializable;
 import java.util.Objects;

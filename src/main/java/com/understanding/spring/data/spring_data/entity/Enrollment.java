@@ -1,4 +1,4 @@
-package com.understanding.spring.data.spring_data.model;
+package com.understanding.spring.data.spring_data.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;

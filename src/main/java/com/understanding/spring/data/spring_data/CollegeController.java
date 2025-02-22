@@ -1,9 +1,9 @@
 package com.understanding.spring.data.spring_data;
 
-import com.understanding.spring.data.spring_data.model.Department;
-import com.understanding.spring.data.spring_data.model.Enrollment;
-import com.understanding.spring.data.spring_data.model.Student;
-import com.understanding.spring.data.spring_data.model.Subject;
+import com.understanding.spring.data.spring_data.entity.Department;
+import com.understanding.spring.data.spring_data.entity.Enrollment;
+import com.understanding.spring.data.spring_data.entity.Student;
+import com.understanding.spring.data.spring_data.entity.Subject;
 import com.understanding.spring.data.spring_data.repo.DepartmentRepository;
 import com.understanding.spring.data.spring_data.repo.StudentRepository;
 import com.understanding.spring.data.spring_data.repo.SubjectRepository;

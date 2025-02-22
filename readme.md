@@ -14,6 +14,9 @@ a join table.
 * PartTree.Java and Part.java shows the different keywords one can use with derived query.
 * FetchType = EAGER will work only in OneToOne relations, in OneToMany it still has the N+! isssue, We can use JOIN FETCH/BatchSize/EntityGraph to do an eager fetch.
 * @Query alsways expects a Select so to pass other queries like DELETE/INSERT we should use another annonttion @Modifying. We can pass 2 params like flushAutomatically/clearAutomtically.
+* Native query no cahcing, has to be changed when db changes, used for complex mapping.
+* @SqlResultSetMapping and @NamedNativeQuery can be used to map sub set column selection in native queries.
+* We use EntityManager to create DynamicNativeQuery, we use StringBuilder to construct the query and have question marks for place holders, we add variables to a list and later manually process the list to populate place holders before running the query.
 * 
 
 Understanding of exception resolver
@@ -34,6 +37,9 @@ it treats it as a string and looks for an appropriate view to render(here the st
  like a file name to render).
 * Difference between MOVED_PERMANENTLY and PERMANENT_REDIRECT is that MOVED_PERMANENTLY allows you to chnage http verb from GET to POST etc
 where as the PERMANENT_REDIRECT will not allow replacing the original HTTP verb with anything else.
+* HttpEntity represents an HTTP request or response consists of headers and body.
+* ResponseEntity extends HttpEntity but also adds a Http status code.
+* ResponseBody indicates that return value of method on which it is used is bound to the response body (Mean the return value of method is treated as Http response body)
 
 Understanding INTERCEPTORS
 --------------------------
@@ -52,8 +58,8 @@ Understanding transactions
 * We can use a <b>TransactionTemplate</b> to handle tramsaction manually/via code
 * Datasource bean is used to create a PlatformTransactionManager bean which is in turn used to create TransactionTemplate or JpaTransactionManager or HibernateTransactionManager
 * We can print below 2 to check transaction status/name
-    sop(TransactionSyncronizationManager.isActualTrnasactionAlive())
-    sop(TransactionSyncronizationManager.getCurrentTransactionName())
+  System.out.println(TransactionSynchronizationManager.isActualTransactionActive());
+  System.out.println(TransactionSynchronizationManager.getCurrentTransactionName());
 * Isolation tells how the changes done by one transaction are visible to others, default isolation level will depend on the underlying db selected, mostly relational dbs use read_committed.
     Read uncommited - fetchs uncommited data (no read/write lock)
     Read committed - fetches only commited data (read lock acquired and released immediately after read or write lock acquired and held till end of transaction)
@@ -120,7 +126,7 @@ Spring jpa
 * @Id can be defined only on single field. If you want to have composite ID then you have to use Embeddable/Embedded or IdClass/Id
 * @GenerationType is used to populate id or else we will have to manually genrate an id and send it along with object.
 * Use @joincolumns to use a composite foreign key.
-* one to one/many to one default loading is eager, one to many/many to many default loading is lazy
+* onetoone/manytoone default loading is eager, onetomany/manytomany default loading is lazy
 * Owner side holds the foreign key column, this makes material changes in db. Inverse side holds a reference to the owner for back tracking but doesnt have any material changes in db.
 * While fetching inverse side can lead to infinite recursion of child->parent->child->etc to prevent that we can use @JsonManagedReference (owning side) or @JsonBackReference (inverse side) or use @JsonIdentityInfo on both sides.
 

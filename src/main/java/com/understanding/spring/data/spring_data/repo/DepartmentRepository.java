@@ -1,6 +1,6 @@
 package com.understanding.spring.data.spring_data.repo;
 
-import com.understanding.spring.data.spring_data.model.Department;
+import com.understanding.spring.data.spring_data.entity.Department;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
