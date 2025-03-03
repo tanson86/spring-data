@@ -31,14 +31,15 @@ public class SecurityConfig {
     private static final String[] AUTH_WHITELIST = {
             // -- Swagger UI v3 (OpenAPI)
             "/public/**",
-            "/public"
+            "/public",
+            "/h2-console/**",
+            "/logout"
     };
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.addFilterBefore(new JwtRequestFilter(), UsernamePasswordAuthenticationFilter.class);
-
-        return http.
+        SecurityFilterChain sfc = http.
                 headers((headers) ->
                         headers.frameOptions(Customizer.withDefaults()).disable()).
                 csrf(csrf->csrf.disable()).
@@ -49,6 +50,7 @@ public class SecurityConfig {
                 sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).
                 httpBasic(Customizer.withDefaults()).
                 build();
+        return sfc;
 
     }
 }

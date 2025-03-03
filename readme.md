@@ -191,3 +191,51 @@ Transaction handling in distributed systems
 * partcipant cannot commit or rollback rather they pass their state to the coordinator who takes the final decision based on all responses if all can be commited or not.
 * partcipants can communicate with each other in 2pc/3pc.
 * saga pattern is more deep(more services involved as part of transaction) and locking will give a bad user experience, saga is asynchronous and 2pc/3pc are synchronous.
+
+Streams code
+------------
+        //Highest integer in a list
+        List.of(1,2,3,4).stream().max(Integer::compareTo).orElse(-1);
+        //Employee with highest salary
+        List.of(new Employee(1,100),new Employee(2,500),new Employee(1,200)).stream().max(Comparator.comparingDouble(Employee::getSalary)).ifPresent(System.out::println);
+        //Concatinate all strings in a list
+        List.of("cat","dog").stream().collect(Collectors.joining("")));
+        //Group by even/odd
+        List.of(1,2,3,4).stream().collect(Collectors.groupingBy(i->i%2==0?"even":"odd")).forEach((k,v)-> System.out.println(k+"---"+v));
+        //Group by dept and get ids
+        List.of(new Employee(1,100,"IT"),new Employee(2,500,"IT"),new Employee(1,200,"CS")).stream().collect(Collectors.groupingBy(Employee::getDept,Collectors.mapping(Employee::getId, Collectors.toList()))).forEach((k, v)-> System.out.println(k+"---"+v));
+        //Get all strings with length > 4
+        List.of("tanson","thomas","tina").stream().filter(i->i.length()>4).collect(Collectors.toSet()).forEach(System.out::println);
+        //Get all strings sorted in reverse order
+        List.of("abc","cat","dog").stream().sorted(Comparator.reverseOrder()).forEach(System.out::println);
+        //Get distinct numbers
+        List.of(1,2,3,4,4,1,5).stream().distinct().forEach(System.out::println);
+        //Check list contains only positive numbers
+        System.out.println(List.of(1,2,3,-1,6).stream().allMatch(i->i>0));
+        //Sort employees by salary
+        List.of(new Employee(1,100,"IT"),new Employee(2,500,"IT"),new Employee(1,200,"CS")).stream().sorted(Comparator.comparingDouble(Employee::getSalary)).forEach(System.out::println);
+        //Group anagrams
+        List.of("silent","listen","enlist","god","dog").stream().collect(Collectors.groupingBy((String word)->{
+            char[] c = word.toCharArray();
+            Arrays.sort(c);
+            return new String(c);
+        })).values().stream().filter(i->i.size()>1).forEach(System.out::println);
+        //Get first 10 fibonacci numbers
+        Stream.iterate(new long[]{0,1},i->new long[]{i[1],i[0]+i[1]}).limit(10).forEach(i-> System.out.println(i[0]));
+        //Employee name with highest salary in each dept
+        List.of(new Employee(1,500,"IT"),new Employee(2,500,"IT"),new Employee(1,200,"CS")).stream().collect(Collectors.groupingBy(Employee::getDept,Collectors.collectingAndThen(Collectors.maxBy(Comparator.comparingDouble(Employee::getSalary)), emp->emp.map(Employee::getId).orElse(null)))).forEach((k,v)-> System.out.println(k+"---"+v));
+        //Get employee name and salary as a map
+        List.of(new Employee(1,500,"IT"),new Employee(2,500,"IT"),new Employee(3,200,"CS")).stream().collect(Collectors.toMap(Employee::getId, Employee::getSalary)).forEach((k, v)-> System.out.println(k+"---"+v));
+        //Distinct employee
+        Set<String> set = new HashSet<>();
+        List.of("tanson","thomas","tanson").stream().filter(p->set.add(p)).forEach(System.out::println);
+        //Extract distinct skills from each employee
+        List.of(new Employee(1,500,"IT", Arrays.asList("JAVA","SCALA")),new Employee(2,500,"IT",Arrays.asList("PYTHON","JAVA")),new Employee(3,200,"CS",Arrays.asList("C","C++"))).stream().flatMap(emp->emp.getSkills().stream()).distinct().forEach(System.out::println);
+        //Filter for characters
+        String x="abcd-*";
+        Arrays.stream(x.split("")).filter(i->i.matches("[a-zA-Z]")).count();
+        //Split an array of sentences to words
+        List.of("hi how are you","I am good").stream().flatMap(i->Arrays.stream(i.split(" "))).forEach(System.out::println);
+        //Find all integers in an array that sums up to a given number
+        List<Integer> list = List.of(1,2,3,4,5,6);
+        list.stream().flatMap(i -> list.stream().filter(j -> j + i == 7).map(j->List.of(i,j)).collect(Collectors.toList()).stream()).collect(Collectors.toList()).forEach(System.out::println);

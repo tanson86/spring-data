@@ -57,4 +57,16 @@ public class CollegeController {
     public List<Student> getStudents(){
         return studentRepository.findAll();
     }
+
+    //full update
+    @PutMapping(path = "/student")
+    public Student putStudent(@RequestBody Student student){
+        return studentRepository.saveAndFlush(student);
+    }
+
+    //partial update
+    @PatchMapping(path = "/student")
+    public Student patchStudent(@RequestBody Student student){
+        return studentRepository.saveAndFlush(student);
+    }
 }
