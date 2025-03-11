@@ -239,3 +239,14 @@ Streams code
         //Find all integers in an array that sums up to a given number
         List<Integer> list = List.of(1,2,3,4,5,6);
         list.stream().flatMap(i -> list.stream().filter(j -> j + i == 7).map(j->List.of(i,j)).collect(Collectors.toList()).stream()).collect(Collectors.toList()).forEach(System.out::println);
+        //Find the First Non-Repeating Character in a String
+        String input = "swiss";
+        Optional<Character> firstUnique = input.chars()
+        .mapToObj(c -> (char) c)
+        .collect(Collectors.groupingBy(Function.identity(), LinkedHashMap::new, Collectors.counting()))
+        .entrySet().stream()
+        .filter(entry -> entry.getValue() == 1)
+        .map(Map.Entry::getKey)
+        .findFirst();
+        
+        System.out.println(firstUnique.orElse(null));
